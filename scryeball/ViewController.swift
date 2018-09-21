@@ -133,7 +133,7 @@ protocol Boardlike {
     func scoreFor(turn: Turn) -> Score
 }
 
-typealias TileConifg = (points: Int, count: Int)
+typealias TileConifg = (count: Int, points: Int)
 
 class Board {
     static let size = 15
@@ -175,10 +175,32 @@ class Board {
     ]
 
     static let tileConfig: [Character: TileConifg] = [
-        "A": (1, 9),
-        "B": (1, 9),
-        "C": (1, 9),
-        "D": (1, 9),
+        "A": (9, 1),
+        "B": (2, 3),
+        "C": (2, 3),
+        "D": (2, 4),
+        "E": (12, 1),
+        "F": (2, 4),
+        "G": (3, 2),
+        "H": (2, 4),
+        "I": (9, 1),
+        "J": (1, 8),
+        "K": (1, 5),
+        "L": (4, 1),
+        "M": (2, 3),
+        "N": (6, 1),
+        "O": (8, 1),
+        "P": (2, 3),
+        "Q": (1, 10),
+        "R": (6, 1),
+        "S": (4, 1),
+        "T": (6, 1),
+        "U": (4, 1),
+        "V": (2, 4),
+        "W": (2, 4),
+        "X": (1, 8),
+        "Y": (2, 4),
+        "Z": (1, 10),
     ]
 }
 
