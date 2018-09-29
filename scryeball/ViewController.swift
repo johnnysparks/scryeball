@@ -8,65 +8,284 @@
 
 import UIKit
 
+extension String: Error { }
+
+extension Int {
+    static func random(_ range: CountableRange<Int>) -> Int {
+        let rand = Float(arc4random()) / Float(UInt32.max)
+        return range.lowerBound + Int(Float(range.upperBound - range.lowerBound) * rand)
+    }
+
+    func times(_ execute: () -> ()) {
+        guard self > 0 else { return }
+        for _ in 0..<self {
+            execute()
+        }
+    }
+}
+
+extension UIView {
+    func boarderize() {
+        layer.borderColor = UIColor.yellow.withAlphaComponent(0.5).cgColor
+        layer.borderWidth = 1
+    }
+}
+
 class ViewController: UIViewController {
+
+    let boardView = BoardView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let list = [
-            "BALL",
-            "BALM",
-            "CALL",
-            "CALM",
-            "CLAM",
-            "FALL",
-        ]
+        view.backgroundColor = .black
+
+        let board = Board()
+
+        boardView.boarderize()
+        boardView.frame = CGRect(x: 0, y: 20, width: view.bounds.width, height: view.bounds.width)
+        view.addSubview(boardView)
+
+        func randMove() -> Move? {
+            guard let letter = board.pickupTile() else {
+                return nil
+            }
+            let pos = Position(x: Int.random(0..<3), y: Int.random(0..<3))
+            return Move(position: pos, letter: letter)
+        }
+
+        5.times {
+            guard let move = randMove() else {
+                return
+            }
+
+            board.make(move: move)
+            boardView.board = board
+        }
+
+        let ai = GameAI()
+        board.initializeHands()
+        ai.board = board
+        boardView.board = ai.play()
+        DispatchQueue.main.async {
+            ai.board = self.boardView.board
+            self.boardView.board = ai.play()
+        }
+    }
+}
+
+extension String {
+    func containsOnlyCharacters(of other: String) -> Bool {
+        var this = self
+        for character in other {
+            if let idx = this.index(of: character) {
+                this.remove(at: idx)
+            }
+        }
+        return this.count == 0
+    }
+}
+
+extension FixedWidthInteger {
+    func exp(_ power: Self) -> Self {
+        var ret = self
+        for _ in 0..<Int(power) {
+            ret = ret * self
+        }
+        return ret
+    }
+}
+
+extension String {
+
+    /// IRONICALLY, NOT FAST
+    func containsOnlyCharactersFast(of other: String) -> Bool {
+        var bitmap: Int = 0
+        for character in other {
+            var start = 0
+            while start < self.count {
+                let str = start == 0 ? Substring(self) : self.suffix(self.count - start)
+                guard let idx = str.index(of: character) else {
+                    break
+                }
+
+                let position = 2.exp(idx.encodedOffset)
+                if bitmap & position != position {
+                    bitmap = bitmap + position
+                    break
+                }
+
+                start += idx.encodedOffset + 1
+            }
+        }
+
+        return bitmap.nonzeroBitCount == self.count
+    }
+}
 
 
-        let start = Date()
+class BoardView: UIView {
+    var size = 15
+    var tileLabels: [[UILabel]] = []
+    var margin: CGFloat = 2.0
+    var board: Board = Board() {
+        didSet {
+            setNeedsLayout()
+            populate(board: board)
+        }
+    }
 
-        let words = Wordlist.main
-        let loaded = Date()
+    func populate(board: Board) {
 
-        print("Loaded: \(words.count) words in \(loaded.timeIntervalSince(start)) sec")
+        for row in 0..<size {
+            for col in 0..<size {
+                let label = tileLabels[row][col]
+                let position = Position(x: col, y: row)
+                let multiplier = board.multiplier(at: position)
+                let character = board.letter(at: position)
+                label.text = character != nil ? String(character!) : ""
+                label.backgroundColor = multiplier.backgroundColor
+                label.textColor = .white
+            }
+        }
+    }
 
+    override init(frame: CGRect) {
+        super.init(frame: frame)
 
+        for _ in 0..<size {
+            var labelRow: [UILabel] = []
+            for _ in 0..<size {
+                let label = UILabel()
+                label.textAlignment = .center
+                label.boarderize()
+                addSubview(label)
+                labelRow.append(label)
+            }
+            tileLabels.append(labelRow)
+        }
+    }
+    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-        print("SEGMENTS:")
-        patternsFor(template: "_M____N", withHand: "BLNAEFCMN").forEach { (regex) in
+    override func layoutSubviews() {
+        super.layoutSubviews()
 
-            let extractedPattern = Date()   
+        let tileSize = CGSize(width: bounds.width / CGFloat(size), height: bounds.height / CGFloat(size))
 
-            print("REGEX: \(regex) - From load: \(extractedPattern.timeIntervalSince(loaded))")
-
-            print(words.filter { $0.matches(pattern: regex) })
-
-            let matchesFound = Date()
-
-            print("found matches in \(matchesFound.timeIntervalSince(extractedPattern)) sec")
+        tileLabels.enumerated().forEach { row, labelRow in
+            labelRow.enumerated().forEach({ col, label in
+                let origin = CGPoint(x: CGFloat(col) * tileSize.width, y: CGFloat(row) * tileSize.height)
+                label.frame = CGRect(origin: origin, size: tileSize).insetBy(dx: margin, dy: margin)
+            })
         }
     }
 }
 
 
+class GameAI {
 
-struct Wordlist {
-    static var main: [String] = { return load(listname: "wordlist") }()
-    static var test: [String] = { return load(listname: "testlist") }()
+    var board = Board()
 
-    private static func load(listname: String) -> [String] {
+    func play() -> Board {
+        let startSlow = Date()
+        let hand = String(board.currentPlayerHand())
+
+        print("STARTING TURN... \(hand)")
+        let matches = bestWords()
+        print(board.letters)
+        var next = board.boardAfter(moves: matches.first!.toMoves())
+        print(next.letters)
+
+        print("ENDING in \(Date().timeIntervalSince(startSlow))sec, found: ")  //\(matches) matches.")
+        return next
+    }
+
+    func bestWords() -> [MoveResult] {
+        let matches = findMatches().map({ $0.toMatchWords() }).flatMap({ $0 })
+        let results = matches.map({ board.scoreFor(turn: $0) }).flatMap({ $0 })
+        let validResults: [MoveResult?] = results.map({
+            let next = board.boardAfter(moves: $0.toMoves())
+            let score = next.secondaryScore(turn: $0)
+            return score != nil ? MoveResult(points: $0.points + score!, word: $0.word, usedChars: $0.usedChars, position: $0.position, direction: $0.direction) : nil
+        })
+        return validResults.compactMap({ $0 }).sorted(by: { $0.points > $1.points })
+    }
+
+    func findMatches() -> [MatchResult] {
+        let hand = String(board.currentPlayerHand())
+
+        var allResults: [MatchResult] = []
+
+        for rowCol in 0..<3 {//Board.size {
+            let rowTemplate = board.templateFor(row: rowCol)
+            let colTemplate = board.templateFor(column: rowCol)
+
+            allResults += resultsFor(template: rowTemplate, hand: hand, direction: .right, position: Position(x: 0, y: rowCol))
+            allResults += resultsFor(template: colTemplate, hand: hand, direction: .down, position: Position(x: rowCol, y: 0))
+        }
+
+        return allResults
+    }
+
+    func resultsFor(template: String, hand: String, direction: Direction, position: Position) -> [MatchResult] {
+        let filteredTemplate = template.filter({ $0 != "_" })
+        guard filteredTemplate != "" else {
+            return []
+        }
+        let validChars = (filteredTemplate + hand)
+        let availableWords = Wordlist.main.long.filter({ $0.containsOnlyCharacters(of: validChars) })
+        let results = patternsFor(template: template, withHand: hand).map { (regex) -> MatchResult in
+            print("\(direction == .down ? "C: " : "R: ") \(template)")
+            let matches = availableWords.filter({ $0.matches(pattern: regex.pattern) })
+            return MatchResult(hand: hand, position: position, direction: direction, regex: regex, results: matches)
+        }
+        return results
+    }
+
+//    func resultsFor(template: String, hand: String, row: Int?, col: Int?) -> [MatchResult] {
+//        let filteredTemplate = template.filter({ $0 != "_" })
+//        guard filteredTemplate != "" else {
+//            return []
+//        }
+//        let validChars = (filteredTemplate + hand)
+//        let availableWords = Wordlist.main.long.filter({ $0.containsOnlyCharacters(of: validChars) })
+//        let results = patternsFor(template: template, withHand: hand).map { (regex) -> MatchResult in
+//            print("\(row == nil ? "C: " : "R: ") \(template)")
+//            let matches = availableWords.filter({ $0.matches(pattern: regex.pattern) })
+//            return MatchResult(row: row, col: col, regex: regex, results: matches)
+//        }
+//        return results
+//    }
+}
+
+
+
+class Wordlist {
+
+    static var main = Wordlist(file: "wordlist")
+    static var test = Wordlist(file: "testlist")
+
+    var all: [String] = []
+    var long: [String] = []
+
+    init(file: String) {
+        load(listname: file)
+    }
+
+    private func load(listname: String) {
 
         guard let wordslist = Bundle.main.path(forResource: listname, ofType: "txt") else {
             print("Error: Unable to find file \(listname).txt in main bundle.")
-            return []
+            return
         }
 
         guard let wordString = try? String(contentsOfFile: wordslist) else {
             print("Error: Unable to read file \(listname).txt in main bundle.")
-            return []
+            return
         }
 
-        return wordString.split(separator: "\n").map { String($0) }
+        all = wordString.split(separator: "\n").map { String($0) }
+        long = all.filter { $0.count > 3 }
     }
 }
 
@@ -89,15 +308,30 @@ enum Multiplier {
         default:
             return .none
         }
+    }
 
+    var backgroundColor: UIColor {
+        switch self {
+        case .word(let value):
+            return UIColor.blue.withAlphaComponent(value == 3 ? 0.5 : 0.25)
+        case .letter(let value):
+            return UIColor.green.withAlphaComponent(value == 3 ? 0.5 : 0.25)
+        case .none:
+            return UIColor.lightGray.withAlphaComponent(0.25)
+        }
     }
 }
 
 enum Direction {
-    case up
     case right
     case down
-    case left
+
+    var other: Direction {
+        switch self {
+        case .right: return .down
+        case .down: return .right
+        }
+    }
 }
 
 struct Position {
@@ -113,30 +347,11 @@ struct Move {
 typealias Turn = [Move]
 typealias Score = Int
 
-// Rules
-// - Turn must connect to other letters, or on the first turn, touch the middle square.
-// - All connected letters must form valid words
-// - Multipliers only apply to _added_ pieces
-// - Each word must be valid
-
-protocol Scoreable {
-    func isValid(word: String) -> Bool
-}
-
-protocol Boardlike {
-    func letter(at: Position) -> Character?
-    func multiplier(at: Position) -> Multiplier
-    func existingMoves() -> [Move]
-    func turnsAnchoredOff(move: Move, with: String) -> [Turn]
-    func unverifiedTurnsFor(letters: String, startingAt: Position, direction: Direction) -> [Turn]
-    func unverifiedWordsFor(turn: Turn) -> [String]
-    func scoreFor(turn: Turn) -> Score
-}
-
 typealias TileConifg = (count: Int, points: Int)
 
 class Board {
     static let size = 15
+    static let handSize = 6
 
     var letters: [String] = [
         "_______________",
@@ -202,6 +417,59 @@ class Board {
         "Y": (2, 4),
         "Z": (1, 10),
     ]
+
+    static func makeBag() -> [Character] {
+        return Board.tileConfig.enumerated().map({ Array(repeating: $1.key, count: $1.value.count) }).flatMap({ $0 })
+    }
+
+    func points(for char: Character) -> Int {
+        return Board.tileConfig[char]?.points ?? -1 // -1 for some error
+    }
+
+    lazy var tileBag: [Character] = { return Board.makeBag() }()
+    func pickupTile() -> Character? {
+        guard tileBag.count > 0 else {
+            return nil
+        }
+        let removeAt = Int.random(0..<tileBag.count)
+        return tileBag.remove(at: removeAt)
+    }
+
+    var player1Hand: [Character] = []
+    var player2Hand: [Character] = []
+
+    func currentPlayerHand() -> [Character] {
+        return player1Hand
+    }
+
+    func initializeHands() {
+        Board.handSize.times {
+            if let tile = pickupTile() {
+                player1Hand.append(tile)
+            }
+
+            if let tile = pickupTile() {
+                player2Hand.append(tile)
+            }
+        }
+    }
+}
+
+struct MoveResult {
+    let points: Int
+    let word: String
+    let usedChars: String
+    let position: Position
+    let direction: Direction
+
+    func toMoves() -> [Move] {
+        switch direction {
+        case .right:
+            return Array(word).enumerated().map { Move(position: Position(x: position.x + $0.offset, y: position.y), letter: $0.element) }
+        case .down:
+            return Array(word).enumerated().map { Move(position: Position(x: position.x, y: position.y + $0.offset), letter: $0.element) }
+        }
+    }
 }
 
 extension Board {
@@ -210,11 +478,22 @@ extension Board {
         return position.x >= 0 && position.x < Board.size && position.y >= 0 && position.y < Board.size
     }
 
-    func letter(at pos: Position) -> Character {
-        return Array(letters[pos.x])[pos.y]
+    func letter(at pos: Position) -> Character? {
+        guard isOnBoard(position: pos) else {
+            print("Looking for invalid letter position: \(pos)")
+            return nil
+        }
+
+        let char = Array(letters[pos.y])[pos.x]
+        return char == "_" ? nil : char
     }
 
     func multiplier(at pos: Position) -> Multiplier {
+        guard isOnBoard(position: pos) else {
+            print("Looking for invalid multiplier position: \(pos)")
+            return .none
+        }
+
         return Multiplier.from(Array(Board.multipliers[pos.x])[pos.y])
     }
 
@@ -228,39 +507,212 @@ extension Board {
         return moves
     }
 
-    func turnsAnchoredOff(move: Move, with: String) -> [Turn] {
-        // unimplemnted
-        return []
+    func make(move: Move) {
+        var chars = Array(letters[move.position.y])
+        chars[move.position.x] = move.letter
+        letters[move.position.y] = String(chars)
     }
 
-    func unverifiedTurnsFor(letters: String, startingAt: Position, direction: Direction) -> [Turn] {
-        // unimplemnted
-        return []
+    func boardAfter(moves: [Move]) -> Board {
+        let next = self
+        moves.forEach { next.make(move: $0) }
+        return next
     }
 
-    func unverifiedWordsFor(turn: Turn) -> [String] {
-        // unimplemnted
-        return []
+    func scoreFor(turn: MatchWord) -> [MoveResult] {
+
+        print("\(turn.position), \(turn.direction == .down ? "⬇️" : "➡️") \(turn.string)")
+
+        if !isOnBoard(position: turn.position) {
+            return []
+        }
+
+        let dir = turn.direction
+        var moveResults: [MoveResult] = []
+        var increment = 0
+
+        while increment < Board.size - turn.string.count {
+
+            var played: String = ""
+            var wordMultiplier = 1
+            var wordPoints = 0
+            var intersected: Bool = false
+            var mismatch: Bool = false
+
+            for idx in 0..<turn.string.count {
+
+                let pos = Position(x: dir == .right ? increment + idx : turn.position.x,
+                                   y: dir == .down ? increment + idx : turn.position.y)
+
+                let char = Array(turn.string)[idx]
+
+                var letterPoints = points(for: char)
+
+                if let existingChar = letter(at: pos) {
+                    intersected = true
+                    if existingChar != char {
+                        mismatch = true
+                        break
+                    }
+                } else {
+                    switch multiplier(at: pos) {
+                    case .word(let x):
+                        wordMultiplier *= x
+                    case .letter(let x):
+                        letterPoints += x
+                    case .none: break
+                    }
+                    played.append(char)
+                }
+
+                wordPoints += letterPoints
+            }
+
+            if intersected && !mismatch {
+                if turn.direction == .right {
+                    print("R: "+String(Array(repeating: "_", count: increment) + Array(turn.string)))
+                    print("R: "+templateFor(row: turn.position.y) + "\n")
+                } else {
+                    print("C: "+String(Array(repeating: "_", count: increment) + Array(turn.string)))
+                    print("C: "+templateFor(column: turn.position.x) + "\n")
+                }
+
+                moveResults.append(MoveResult(points: wordPoints * wordMultiplier,
+                                              word: turn.string,
+                                              usedChars: played,
+                                              position: Position(x: dir == .right ? increment : turn.position.x,
+                                                                 y: dir == .down ? increment : turn.position.y),
+                                              direction: dir))
+            }
+
+            increment += 1
+        }
+
+        return moveResults
     }
 
-    func scoreFor(turn: Turn) -> Score {
-        // unimplemnted
-        return 0
+    func secondaryWordScore(inDirection dir: Direction, intersecting: Position) -> (MoveResult?, Error?) {
+
+        func position(at offset: Int) -> Position {
+            // word in col, intersecting row
+            return dir == .right
+                ? Position(x: offset, y: intersecting.y)
+                : Position(x: intersecting.x, y: offset)
+        }
+
+        let idx = dir == .right ? intersecting.x : intersecting.y
+        var start = idx
+        var end = idx
+        var wordMultiplier = 1
+        var wordScore = 0
+        var inWord = true
+
+        var pos = position(at: idx)
+        while inWord {
+            pos = position(at: start - 1)
+            if isOnBoard(position: pos) && letter(at: pos) != nil {
+                start -= 1
+            } else {
+                inWord = false
+            }
+        }
+
+        inWord = true
+        while inWord {
+            pos = position(at: end)
+            if isOnBoard(position: pos) && letter(at: pos) != nil {
+                end += 1
+            } else {
+                inWord = false
+            }
+        }
+
+        for charIdx in start..<end {
+            pos = position(at: charIdx)
+            guard let char = letter(at: pos) else {
+                continue
+            }
+            var letterPoints = points(for: char)
+
+            if idx == charIdx {
+                switch multiplier(at: pos) {
+                case .letter(let value):
+                    letterPoints *= value
+                case .word(let value):
+                    wordMultiplier *= value
+                case .none: break
+                }
+            }
+
+            wordScore += letterPoints
+        }
+
+        guard end - start > 1 else {
+            return (nil, nil)
+        }
+
+        let pattern = template(in: dir, offset: dir == .right ? intersecting.y : intersecting.x)
+        let word = String(Array(pattern)[start..<end])
+
+        guard Wordlist.main.long.contains(word) else {
+            return (nil, "Invalid Word")
+        }
+
+        return (MoveResult(points: wordScore * wordMultiplier,
+                          word: word,
+                          usedChars: "",
+                          position: position(at: start),
+                          direction: dir), nil)
     }
 
-    func templateFor(row: UInt) -> String {
-        assert(row < Board.size, "Attempted to access row template not on board")
 
-        return letters[Int(row)]
+    func secondaryScore(turn: MoveResult) -> Int? {
+        // skip intersecting row
+
+        // validate that any other range of intersecting letters is a word
+        var scores: [MoveResult] = []
+        let x = turn.position.x
+        let y = turn.position.y
+        let dir = turn.direction
+        for idx in 0..<turn.word.count {
+            let pos = Position(x: dir == .right ? x + idx : y,
+                               y: dir == .right ? y : x + idx)
+            let res = secondaryWordScore(inDirection: dir.other, intersecting: pos)
+
+            if let error = res.1 {
+                print(error)
+                return nil
+            }
+
+            if let score = res.0, res.1 == nil {
+                scores.append(score)
+            }
+        }
+
+        return scores.reduce(0, { $0 + $1.points })
     }
 
-    func templateFor(column: UInt) -> String {
-        assert(Int(column) < Board.size, "Attempted to access row template not on board")
+    func template(in direction: Direction, offset: Int) -> String {
+        assert(offset >= 0 && offset < Board.size, "Attempted to access template not on board")
 
-        return String(letters.map({ Array($0)[Int(column)] }))
+        if direction == .right {
+            return letters[offset]
+        } else {
+            return String(letters.map({ Array($0)[offset] }))
+        }
     }
 
+    func templateFor(row: Int) -> String {
+        assert(row >= 0 && row < Board.size, "Attempted to access row template not on board")
 
+        return letters[row]
+    }
+
+    func templateFor(column: Int) -> String {
+        assert(column >= 0 && column < Board.size, "Attempted to access row template not on board")
+
+        return String(letters.map({ Array($0)[column] }))
+    }
 }
 
 
@@ -323,11 +775,6 @@ class WordMap {
             nodeMaps[offset] = nodesForOffset
         }
     }
-
-    func match(patternWord: String, with letters: String) -> Bool {
-        let matchNodes = patternWord.enumerated().compactMap { $1 == "_" ? nil : nodeMaps[$0]?[$1] }
-        return false
-    }
 }
 
 extension String {
@@ -355,6 +802,24 @@ extension String {
         return set
     }
 
+    func sortedPermute() -> [String] {
+        let list = self.sorted()
+        var groups: [String] = []
+
+        guard list.count > 2 else {
+            return [String(list)]
+        }
+
+        for groupSize in 2..<list.count {
+            for start in 0...list.count-groupSize {
+                let group = list[start..<start+groupSize]
+                groups.append(String(group))
+            }
+        }
+
+        return groups
+    }
+
     func matches(pattern: String) -> Bool {
         guard let rx = try? NSRegularExpression(pattern: pattern, options: NSRegularExpression.Options.caseInsensitive) else {
             print("FAILD TO CREATE REGEX: \(pattern)")
@@ -362,6 +827,7 @@ extension String {
         }
 
         let matx = rx.matches(in: self, options: [], range: NSRange(location: 0, length: self.count))
+
         if matx.count > 0 {
             print(self)
         }
@@ -420,6 +886,7 @@ extension String {
 // Add cross section words to score, or reject word.
 
 struct Fragment {
+    var templateOffset: Int = 0
     var leadingSpace: Int = 0
     var trailingSpace: Int = 0
     var string: String = ""
@@ -427,42 +894,56 @@ struct Fragment {
     var isStarting: Bool = false
 }
 
+struct AnchoredRegex {
+    let patternOffset: Int
+    let pattern: String
+}
+
+struct MatchResult {
+    let hand: String
+    let position: Position
+    let direction: Direction
+    let regex: AnchoredRegex
+    let results: [String]
+
+    func toMatchWords() -> [MatchWord] {
+        return results.map { MatchWord(position: position, direction: direction, string: $0, hand: hand) }
+    }
+}
+
+struct MatchWord {
+    let position: Position
+    let direction: Direction
+    let string: String
+    let hand: String
+}
 
 // A segment is end before the first space _after_ a group of characters.
 // If there is no character, there are now segments.
-func patternsFor(template: String, withHand: String) -> [String] {
+func patternsFor(template: String, withHand: String) -> [AnchoredRegex] {
 
     guard template.count > 0 else {
         return []
     }
 
     var fragments: [Fragment] = []
+    var splitStarts: [Int] = [0]
     var splits: [String] = []
     var start = 0
     while start < template.count {
         let spaceSplit = template.suffix(template.count - start).prefix(while: { $0 == "_" })
         if spaceSplit.count > 0 {
             splits.append(String(spaceSplit))
+            splitStarts.append(template.count - start)
             start += spaceSplit.count
         }
         let letterSplit = template.suffix(template.count - start).prefix(while: { $0 != "_" })
         if letterSplit.count > 0 {
             splits.append(String(letterSplit))
+            splitStarts.append(template.count - start)
             start += letterSplit.count
         }
     }
-
-
-//    var frag = Fragment()
-//    frag.isStarting = true
-//    frag.isEnding = false
-//    frag.leadingSpace = splits[0].count
-//    frag.string = splits[1]
-//    frag.trailingSpace = splits[2].count
-
-    // prev
-    // curr
-    // next
 
     for idx in 0..<splits.count {
         let prev = idx - 1 < 0 ? nil : splits[idx - 1]
@@ -474,12 +955,16 @@ func patternsFor(template: String, withHand: String) -> [String] {
             continue
         }
 
+        print("SPLITS \(splits) \(splitStarts)")
+
         var frag = Fragment()
+        frag.templateOffset = splitStarts[idx]
         frag.isStarting = fragments.count == 0
         frag.string = curr
         frag.leadingSpace = prev?.count ?? 0
         frag.trailingSpace = next?.count ?? 0
         frag.isEnding = next == nil || (idx + 2 == splits.count && next?.contains("_") == true)
+//        frag.template = [prev, curr, next].compactMap { $0 }.joined()
 
         fragments.append(frag)
     }
@@ -488,27 +973,36 @@ func patternsFor(template: String, withHand: String) -> [String] {
     // pairs first
 
     var groupedFragments: [Fragment] = []
-    for groupSize in 2...fragments.count {
-        for groupStart in 0...fragments.count-groupSize {
-            let fragmentGroup = fragments[groupStart..<groupSize+groupStart]
 
-            var frag = Fragment()
-            frag.isStarting = fragmentGroup.first?.isStarting == true
-            frag.isEnding = fragmentGroup.last?.isEnding == true
-            frag.leadingSpace = fragmentGroup.first?.leadingSpace ?? 0
-            frag.trailingSpace = fragmentGroup.last?.trailingSpace ?? 0
-            let groupString = fragmentGroup.reduce("") { $0 + $1.string + "[%@]{\($1.trailingSpace)}" }
-            frag.string = groupString.trimmingCharacters(in: CharacterSet(charactersIn: "[%@]{}0123456789"))
+    if fragments.count > 2 {
+        for groupSize in 2...fragments.count {
+            for groupStart in 0...fragments.count-groupSize {
+                let fragmentGroup = fragments[groupStart..<groupSize+groupStart]
 
-            groupedFragments.append(frag)
+                guard let first = fragmentGroup.first, let last = fragmentGroup.last else {
+                    print("ERROR BUILDING FRAGMENT GROUPS!!")
+                    break
+                }
+
+                var frag = Fragment()
+                frag.templateOffset = first.templateOffset
+                frag.isStarting = first.isStarting
+                frag.isEnding = last.isEnding
+                frag.leadingSpace = first.leadingSpace
+                frag.trailingSpace = last.trailingSpace
+                let groupString = fragmentGroup.reduce("") { $0 + $1.string + "[%@]{\($1.trailingSpace)}" }
+                frag.string = groupString.trimmingCharacters(in: CharacterSet(charactersIn: "[%@]{}0123456789"))
+//                frag.template = fragmentGroup.map({ $0.template }).joined()
+
+                groupedFragments.append(frag)
+            }
+            print("GROUP SIZE: \(groupSize)")
         }
-        print("GROUP SIZE: \(groupSize)")
     }
-    print(splits)
 
     let allFragments = fragments + groupedFragments
 
-    let regexes = allFragments.map { frag -> String in
+    let regexes = allFragments.map { frag -> AnchoredRegex in
         let leadingSpace = frag.leadingSpace - (frag.isStarting ? 0 : 1)
         let trailingSpace = frag.trailingSpace - (frag.isEnding ? 0 : 1)
         var str = ""
@@ -520,13 +1014,13 @@ func patternsFor(template: String, withHand: String) -> [String] {
             str += "[%@]{0,\(trailingSpace)}"
         }
         let inner = str.replacingOccurrences(of: "%@", with: withHand)
-        return "^\(inner)$"
+        return AnchoredRegex(patternOffset: frag.templateOffset, pattern: "^\(inner)$")
     }
-
-//    print(regexes)
 
     return regexes.reversed()
 }
+
+
 
 
 // cab
