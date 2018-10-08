@@ -8,22 +8,6 @@
 
 import UIKit
 
-extension String: Error { }
-
-extension Int {
-    static func random(_ range: CountableRange<Int>) -> Int {
-        let rand = Float(arc4random()) / Float(UInt32.max)
-        return range.lowerBound + Int(Float(range.upperBound - range.lowerBound) * rand)
-    }
-
-    func times(_ execute: () -> ()) {
-        guard self > 0 else { return }
-        for _ in 0..<self {
-            execute()
-        }
-    }
-}
-
 extension UIView {
     func boarderize() {
         layer.borderColor = UIColor.yellow.withAlphaComponent(0.5).cgColor
@@ -31,9 +15,63 @@ extension UIView {
     }
 }
 
+class HandView: UIView {
+    var size = 6
+    var tileLabels: [UILabel] = []
+    var margin: CGFloat = 2.0
+    var hand: String = "" {
+        didSet {
+            setNeedsLayout()
+            populate(hand: hand)
+        }
+    }
+
+    func populate(hand: String) {
+        let chars = Array(hand)
+        for idx in 0..<chars.count {
+            let char = chars[idx]
+            let label = tileLabels[idx]
+            label.text = String(char)
+            label.backgroundColor = UIColor.yellow.withAlphaComponent(0.25)
+            label.textColor = .white
+        }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        for _ in 0..<size {
+            let label = UILabel()
+            label.textAlignment = .center
+            label.boarderize()
+            addSubview(label)
+            tileLabels.append(label)
+        }
+    }
+    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        let tileSize = CGSize(width: bounds.width / CGFloat(size), height: bounds.width / CGFloat(size))
+
+        tileLabels.enumerated().forEach { idx, label in
+            let origin = CGPoint(x: CGFloat(idx) * tileSize.width, y: 0)
+            label.frame = CGRect(origin: origin, size: tileSize).insetBy(dx: margin, dy: margin)
+        }
+    }
+}
+
+class ScoreCardView: UIView {
+    let label = UILabel()
+}
+
 class ViewController: UIViewController {
 
+    let ai = RegexGameAI()
     let boardView = BoardView()
+    let p1HandView = HandView()
+    let p2HandView = HandView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,83 +84,54 @@ class ViewController: UIViewController {
         boardView.frame = CGRect(x: 0, y: 20, width: view.bounds.width, height: view.bounds.width)
         view.addSubview(boardView)
 
+        [p1HandView, p2HandView].forEach {
+            view.addSubview($0)
+        }
+
+        p1HandView.frame = CGRect(x: 0, y: boardView.frame.maxY + 20, width: view.bounds.width / 2, height: 50.0)
+        p2HandView.frame = CGRect(x: view.bounds.width / 2, y: boardView.frame.maxY + 20, width: view.bounds.width / 2, height: 50.0)
+
         func randMove() -> Move? {
             guard let letter = board.pickupTile() else {
                 return nil
             }
-            let pos = Position(x: Int.random(0..<3), y: Int.random(0..<3))
+            let pos = Position(x: Int.random(0..<Board.size), y: Int.random(0..<Board.size))
             return Move(position: pos, letter: letter)
         }
 
-        5.times {
-            guard let move = randMove() else {
-                return
-            }
 
-            board.make(move: move)
-            boardView.board = board
-        }
+        let tile = board.tileBag.popLast()!
+        let move = Move(position: Position(x: 7, y: 7), letter: tile)
+        board.make(move: move)
+        boardView.board = board
 
-        let ai = GameAI()
+
+
         board.initializeHands()
         ai.board = board
-        boardView.board = ai.play()
-        DispatchQueue.main.async {
-            ai.board = self.boardView.board
-            self.boardView.board = ai.play()
-        }
-    }
-}
 
-extension String {
-    func containsOnlyCharacters(of other: String) -> Bool {
-        var this = self
-        for character in other {
-            if let idx = this.index(of: character) {
-                this.remove(at: idx)
+        self.boardView.board = board
+        self.p1HandView.hand = String(board.player1Hand)
+        self.p2HandView.hand = String(board.player2Hand)
+
+        run()
+    }
+
+    func run() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            if let next = self.ai.play() {
+                self.boardView.board = next
+                self.p1HandView.hand = String(next.player1Hand)
+                self.p2HandView.hand = String(next.player2Hand)
+                self.ai.board = next
+
+                if !next.tileBag.isEmpty {
+                    self.run()
+                }
             }
         }
-        return this.count == 0
     }
 }
-
-extension FixedWidthInteger {
-    func exp(_ power: Self) -> Self {
-        var ret = self
-        for _ in 0..<Int(power) {
-            ret = ret * self
-        }
-        return ret
-    }
-}
-
-extension String {
-
-    /// IRONICALLY, NOT FAST
-    func containsOnlyCharactersFast(of other: String) -> Bool {
-        var bitmap: Int = 0
-        for character in other {
-            var start = 0
-            while start < self.count {
-                let str = start == 0 ? Substring(self) : self.suffix(self.count - start)
-                guard let idx = str.index(of: character) else {
-                    break
-                }
-
-                let position = 2.exp(idx.encodedOffset)
-                if bitmap & position != position {
-                    bitmap = bitmap + position
-                    break
-                }
-
-                start += idx.encodedOffset + 1
-            }
-        }
-
-        return bitmap.nonzeroBitCount == self.count
-    }
-}
-
 
 class BoardView: UIView {
     var size = 15
@@ -182,87 +191,9 @@ class BoardView: UIView {
 }
 
 
-class GameAI {
-
-    var board = Board()
-
-    func play() -> Board {
-        let startSlow = Date()
-        let hand = String(board.currentPlayerHand())
-
-        print("STARTING TURN... \(hand)")
-        let matches = bestWords()
-        print(board.letters)
-        var next = board.boardAfter(moves: matches.first!.toMoves())
-        print(next.letters)
-
-        print("ENDING in \(Date().timeIntervalSince(startSlow))sec, found: ")  //\(matches) matches.")
-        return next
-    }
-
-    func bestWords() -> [MoveResult] {
-        let matches = findMatches().map({ $0.toMatchWords() }).flatMap({ $0 })
-        let results = matches.map({ board.scoreFor(turn: $0) }).flatMap({ $0 })
-        let validResults: [MoveResult?] = results.map({
-            let next = board.boardAfter(moves: $0.toMoves())
-            let score = next.secondaryScore(turn: $0)
-            return score != nil ? MoveResult(points: $0.points + score!, word: $0.word, usedChars: $0.usedChars, position: $0.position, direction: $0.direction) : nil
-        })
-        return validResults.compactMap({ $0 }).sorted(by: { $0.points > $1.points })
-    }
-
-    func findMatches() -> [MatchResult] {
-        let hand = String(board.currentPlayerHand())
-
-        var allResults: [MatchResult] = []
-
-        for rowCol in 0..<3 {//Board.size {
-            let rowTemplate = board.templateFor(row: rowCol)
-            let colTemplate = board.templateFor(column: rowCol)
-
-            allResults += resultsFor(template: rowTemplate, hand: hand, direction: .right, position: Position(x: 0, y: rowCol))
-            allResults += resultsFor(template: colTemplate, hand: hand, direction: .down, position: Position(x: rowCol, y: 0))
-        }
-
-        return allResults
-    }
-
-    func resultsFor(template: String, hand: String, direction: Direction, position: Position) -> [MatchResult] {
-        let filteredTemplate = template.filter({ $0 != "_" })
-        guard filteredTemplate != "" else {
-            return []
-        }
-        let validChars = (filteredTemplate + hand)
-        let availableWords = Wordlist.main.long.filter({ $0.containsOnlyCharacters(of: validChars) })
-        let results = patternsFor(template: template, withHand: hand).map { (regex) -> MatchResult in
-            print("\(direction == .down ? "C: " : "R: ") \(template)")
-            let matches = availableWords.filter({ $0.matches(pattern: regex.pattern) })
-            return MatchResult(hand: hand, position: position, direction: direction, regex: regex, results: matches)
-        }
-        return results
-    }
-
-//    func resultsFor(template: String, hand: String, row: Int?, col: Int?) -> [MatchResult] {
-//        let filteredTemplate = template.filter({ $0 != "_" })
-//        guard filteredTemplate != "" else {
-//            return []
-//        }
-//        let validChars = (filteredTemplate + hand)
-//        let availableWords = Wordlist.main.long.filter({ $0.containsOnlyCharacters(of: validChars) })
-//        let results = patternsFor(template: template, withHand: hand).map { (regex) -> MatchResult in
-//            print("\(row == nil ? "C: " : "R: ") \(template)")
-//            let matches = availableWords.filter({ $0.matches(pattern: regex.pattern) })
-//            return MatchResult(row: row, col: col, regex: regex, results: matches)
-//        }
-//        return results
-//    }
-}
-
-
-
 class Wordlist {
 
-    static var main = Wordlist(file: "wordlist")
+    static var main = Wordlist(file: "") //wordlist")
     static var test = Wordlist(file: "testlist")
 
     var all: [String] = []
@@ -452,6 +383,15 @@ class Board {
                 player2Hand.append(tile)
             }
         }
+    }
+
+    func copy() -> Board {
+        let board = Board()
+        board.letters = self.letters
+        board.player1Hand = self.player1Hand
+        board.player2Hand = self.player2Hand
+        board.tileBag = self.tileBag
+        return board
     }
 }
 
@@ -654,7 +594,7 @@ extension Board {
         let pattern = template(in: dir, offset: dir == .right ? intersecting.y : intersecting.x)
         let word = String(Array(pattern)[start..<end])
 
-        guard Wordlist.main.long.contains(word) else {
+        guard Wordlist.main.all.contains(word) else {
             return (nil, "Invalid Word")
         }
 
@@ -679,8 +619,7 @@ extension Board {
                                y: dir == .right ? y : x + idx)
             let res = secondaryWordScore(inDirection: dir.other, intersecting: pos)
 
-            if let error = res.1 {
-                print(error)
+            if let _ = res.1 {
                 return nil
             }
 
@@ -714,6 +653,7 @@ extension Board {
         return String(letters.map({ Array($0)[column] }))
     }
 }
+
 
 
 // BALL
@@ -777,248 +717,7 @@ class WordMap {
     }
 }
 
-extension String {
-    func permute() -> Set<String> {
 
-        let list = Array(self).map { String($0) }
-
-        let minStringLen = 2
-
-        func permute(fromList: [String], toList: [String], minStringLen: Int, set: inout Set<String>) {
-            if toList.count >= minStringLen {
-                set.insert(toList.joined(separator: ""))
-            }
-            if !fromList.isEmpty {
-                for (index, item) in fromList.enumerated() {
-                    var newFrom = fromList
-                    newFrom.remove(at: index)
-                    permute(fromList: newFrom, toList: toList + [item], minStringLen: minStringLen, set: &set)
-                }
-            }
-        }
-
-        var set = Set<String>()
-        permute(fromList: list, toList:[], minStringLen: minStringLen, set: &set)
-        return set
-    }
-
-    func sortedPermute() -> [String] {
-        let list = self.sorted()
-        var groups: [String] = []
-
-        guard list.count > 2 else {
-            return [String(list)]
-        }
-
-        for groupSize in 2..<list.count {
-            for start in 0...list.count-groupSize {
-                let group = list[start..<start+groupSize]
-                groups.append(String(group))
-            }
-        }
-
-        return groups
-    }
-
-    func matches(pattern: String) -> Bool {
-        guard let rx = try? NSRegularExpression(pattern: pattern, options: NSRegularExpression.Options.caseInsensitive) else {
-            print("FAILD TO CREATE REGEX: \(pattern)")
-            return false
-        }
-
-        let matx = rx.matches(in: self, options: [], range: NSRange(location: 0, length: self.count))
-
-        if matx.count > 0 {
-            print(self)
-        }
-        return matx.count > 0
-    }
-}
-
-// Find a match for pattern examples
-// Basic: Max score that contains T
-// ____________T____________
-
-// Constrained
-// 1D Constrained: MAX score that contains T and S one space apart
-// __________T_S____________
-
-// Constrained, max length, maxium preceding characters
-// _T_S_______________
-
-// Constrined, maximum following characters
-// ______________T_S_
-//
-
-
-// Step 1. Can handle a whole row with regex, as long as the word is continuous.
-// ___FETCH__T_R__ eg: TORN
-//
-// Needs to anchor to one or more of the above groups. ie.
-// ___FETCH_
-// _T
-// R__
-// ___FETCH__T
-// _T_R__
-// ___FETCH_T_R__
-
-// Algo, segment one at a time, then two at a time, then 3 at a time, etc.
-
-// Step 2:
-// Validate cross section words
-// _______________
-// _______________
-// _______________
-// ______F________
-// ______E________
-// ______T________
-// ______CITE_____
-// ______H_H______
-// ________A______
-// ________N______
-// ______TAKE_____
-// ______ON_______
-// _____ART_______
-// ______N________
-// _______________
-
-// Step 3:
-// Add cross section words to score, or reject word.
-
-struct Fragment {
-    var templateOffset: Int = 0
-    var leadingSpace: Int = 0
-    var trailingSpace: Int = 0
-    var string: String = ""
-    var isEnding: Bool = false
-    var isStarting: Bool = false
-}
-
-struct AnchoredRegex {
-    let patternOffset: Int
-    let pattern: String
-}
-
-struct MatchResult {
-    let hand: String
-    let position: Position
-    let direction: Direction
-    let regex: AnchoredRegex
-    let results: [String]
-
-    func toMatchWords() -> [MatchWord] {
-        return results.map { MatchWord(position: position, direction: direction, string: $0, hand: hand) }
-    }
-}
-
-struct MatchWord {
-    let position: Position
-    let direction: Direction
-    let string: String
-    let hand: String
-}
-
-// A segment is end before the first space _after_ a group of characters.
-// If there is no character, there are now segments.
-func patternsFor(template: String, withHand: String) -> [AnchoredRegex] {
-
-    guard template.count > 0 else {
-        return []
-    }
-
-    var fragments: [Fragment] = []
-    var splitStarts: [Int] = [0]
-    var splits: [String] = []
-    var start = 0
-    while start < template.count {
-        let spaceSplit = template.suffix(template.count - start).prefix(while: { $0 == "_" })
-        if spaceSplit.count > 0 {
-            splits.append(String(spaceSplit))
-            splitStarts.append(template.count - start)
-            start += spaceSplit.count
-        }
-        let letterSplit = template.suffix(template.count - start).prefix(while: { $0 != "_" })
-        if letterSplit.count > 0 {
-            splits.append(String(letterSplit))
-            splitStarts.append(template.count - start)
-            start += letterSplit.count
-        }
-    }
-
-    for idx in 0..<splits.count {
-        let prev = idx - 1 < 0 ? nil : splits[idx - 1]
-        let curr = splits[idx]
-        let next = idx + 1 < splits.count ? splits[idx + 1] : nil
-
-        // Move along, we only care about text
-        if curr.contains("_") {
-            continue
-        }
-
-        print("SPLITS \(splits) \(splitStarts)")
-
-        var frag = Fragment()
-        frag.templateOffset = splitStarts[idx]
-        frag.isStarting = fragments.count == 0
-        frag.string = curr
-        frag.leadingSpace = prev?.count ?? 0
-        frag.trailingSpace = next?.count ?? 0
-        frag.isEnding = next == nil || (idx + 2 == splits.count && next?.contains("_") == true)
-//        frag.template = [prev, curr, next].compactMap { $0 }.joined()
-
-        fragments.append(frag)
-    }
-
-    // Permute fragments
-    // pairs first
-
-    var groupedFragments: [Fragment] = []
-
-    if fragments.count > 2 {
-        for groupSize in 2...fragments.count {
-            for groupStart in 0...fragments.count-groupSize {
-                let fragmentGroup = fragments[groupStart..<groupSize+groupStart]
-
-                guard let first = fragmentGroup.first, let last = fragmentGroup.last else {
-                    print("ERROR BUILDING FRAGMENT GROUPS!!")
-                    break
-                }
-
-                var frag = Fragment()
-                frag.templateOffset = first.templateOffset
-                frag.isStarting = first.isStarting
-                frag.isEnding = last.isEnding
-                frag.leadingSpace = first.leadingSpace
-                frag.trailingSpace = last.trailingSpace
-                let groupString = fragmentGroup.reduce("") { $0 + $1.string + "[%@]{\($1.trailingSpace)}" }
-                frag.string = groupString.trimmingCharacters(in: CharacterSet(charactersIn: "[%@]{}0123456789"))
-//                frag.template = fragmentGroup.map({ $0.template }).joined()
-
-                groupedFragments.append(frag)
-            }
-            print("GROUP SIZE: \(groupSize)")
-        }
-    }
-
-    let allFragments = fragments + groupedFragments
-
-    let regexes = allFragments.map { frag -> AnchoredRegex in
-        let leadingSpace = frag.leadingSpace - (frag.isStarting ? 0 : 1)
-        let trailingSpace = frag.trailingSpace - (frag.isEnding ? 0 : 1)
-        var str = ""
-        if leadingSpace > 0{
-            str += "[%@]{0,\(leadingSpace)}"
-        }
-        str += frag.string
-        if trailingSpace > 0 {
-            str += "[%@]{0,\(trailingSpace)}"
-        }
-        let inner = str.replacingOccurrences(of: "%@", with: withHand)
-        return AnchoredRegex(patternOffset: frag.templateOffset, pattern: "^\(inner)$")
-    }
-
-    return regexes.reversed()
-}
 
 
 

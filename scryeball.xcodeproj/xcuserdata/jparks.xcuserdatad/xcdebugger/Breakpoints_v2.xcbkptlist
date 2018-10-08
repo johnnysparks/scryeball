@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "scryeball/ViewController.swift"
-            timestampString = "559604364.1779391"
+            timestampString = "560723771.342158"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "633"
-            endingLineNumber = "633"
+            startingLineNumber = "733"
+            endingLineNumber = "733"
             landmarkName = "secondaryWordScore(inDirection:intersecting:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -26,76 +26,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "scryeball/ViewController.swift"
-            timestampString = "559604364.178472"
+            timestampString = "560723771.342629"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "611"
-            endingLineNumber = "611"
+            startingLineNumber = "711"
+            endingLineNumber = "711"
             landmarkName = "secondaryWordScore(inDirection:intersecting:)"
             landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "scryeball/ViewController.swift"
-            timestampString = "559604421.275651"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "211"
-            endingLineNumber = "211"
-            landmarkName = "bestWords()"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "scryeball.GameAI.bestWords() -&gt; Swift.Array&lt;scryeball.MoveResult&gt;"
-                  moduleName = "scryeball"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jparks/dev/scryeball/scryeball/ViewController.swift"
-                  timestampString = "559604421.282617"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "211"
-                  endingLineNumber = "211"
-                  offsetFromSymbolStart = "1057">
-               </Location>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #6 (Swift.Optional&lt;scryeball.MoveResult&gt;) -&gt; Swift.Optional&lt;scryeball.MoveResult&gt; in scryeball.GameAI.bestWords() -&gt; Swift.Array&lt;scryeball.MoveResult&gt;"
-                  moduleName = "scryeball"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jparks/dev/scryeball/scryeball/ViewController.swift"
-                  timestampString = "559604421.286038"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "211"
-                  endingLineNumber = "211"
-                  offsetFromSymbolStart = "12">
-               </Location>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #7 (scryeball.MoveResult, scryeball.MoveResult) -&gt; Swift.Bool in scryeball.GameAI.bestWords() -&gt; Swift.Array&lt;scryeball.MoveResult&gt;"
-                  moduleName = "scryeball"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jparks/dev/scryeball/scryeball/ViewController.swift"
-                  timestampString = "559604421.2891819"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "211"
-                  endingLineNumber = "211"
-                  offsetFromSymbolStart = "16">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

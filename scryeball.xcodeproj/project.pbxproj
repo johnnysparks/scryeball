@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E438549A216BFAF600D5C65B /* RegexWordFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4385499216BFAF600D5C65B /* RegexWordFinder.swift */; };
+		E438549C216BFBF500D5C65B /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = E438549B216BFBF500D5C65B /* Util.swift */; };
 		E48FAB5A214F26B000831C66 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48FAB59214F26B000831C66 /* AppDelegate.swift */; };
 		E48FAB5C214F26B000831C66 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48FAB5B214F26B000831C66 /* ViewController.swift */; };
 		E48FAB5F214F26B000831C66 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E48FAB5D214F26B000831C66 /* Main.storyboard */; };
@@ -17,6 +19,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E4385499216BFAF600D5C65B /* RegexWordFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegexWordFinder.swift; sourceTree = "<group>"; };
+		E438549B216BFBF500D5C65B /* Util.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
 		E48FAB56214F26B000831C66 /* scryeball.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scryeball.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E48FAB59214F26B000831C66 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E48FAB5B214F26B000831C66 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -39,6 +43,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E4385498216BFAC900D5C65B /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				E48FAB5B214F26B000831C66 /* ViewController.swift */,
+				E48FAB59214F26B000831C66 /* AppDelegate.swift */,
+				E4385499216BFAF600D5C65B /* RegexWordFinder.swift */,
+				E438549B216BFBF500D5C65B /* Util.swift */,
+			);
+			path = Source;
+			sourceTree = "<group>";
+		};
 		E48FAB4D214F26AF00831C66 = {
 			isa = PBXGroup;
 			children = (
@@ -58,8 +73,7 @@
 		E48FAB58214F26B000831C66 /* scryeball */ = {
 			isa = PBXGroup;
 			children = (
-				E48FAB59214F26B000831C66 /* AppDelegate.swift */,
-				E48FAB5B214F26B000831C66 /* ViewController.swift */,
+				E4385498216BFAC900D5C65B /* Source */,
 				E48FAB5D214F26B000831C66 /* Main.storyboard */,
 				E48FAB6B214F274300831C66 /* Resources */,
 			);
@@ -151,8 +165,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E438549A216BFAF600D5C65B /* RegexWordFinder.swift in Sources */,
 				E48FAB5C214F26B000831C66 /* ViewController.swift in Sources */,
 				E48FAB5A214F26B000831C66 /* AppDelegate.swift in Sources */,
+				E438549C216BFBF500D5C65B /* Util.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
