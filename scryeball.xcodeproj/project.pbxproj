@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		E438549A216BFAF600D5C65B /* RegexWordFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4385499216BFAF600D5C65B /* RegexWordFinder.swift */; };
 		E438549C216BFBF500D5C65B /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = E438549B216BFBF500D5C65B /* Util.swift */; };
+		E44C738E2199415200770198 /* NodeWordFinderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44C738D2199415200770198 /* NodeWordFinderTests.swift */; };
+		E44C73962199432500770198 /* NodeWordFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44C73952199432500770198 /* NodeWordFinder.swift */; };
+		E44C73982199451F00770198 /* NodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44C73972199451F00770198 /* NodeTests.swift */; };
 		E48FAB5A214F26B000831C66 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48FAB59214F26B000831C66 /* AppDelegate.swift */; };
 		E48FAB5C214F26B000831C66 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48FAB5B214F26B000831C66 /* ViewController.swift */; };
 		E48FAB5F214F26B000831C66 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E48FAB5D214F26B000831C66 /* Main.storyboard */; };
@@ -18,9 +21,24 @@
 		E48FAB6F2150A94100831C66 /* testlist.txt in Resources */ = {isa = PBXBuildFile; fileRef = E48FAB6E2150A94100831C66 /* testlist.txt */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		E44C73902199415200770198 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E48FAB4E214F26AF00831C66 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E48FAB55214F26AF00831C66;
+			remoteInfo = scryeball;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		E4385499216BFAF600D5C65B /* RegexWordFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegexWordFinder.swift; sourceTree = "<group>"; };
 		E438549B216BFBF500D5C65B /* Util.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
+		E44C738B2199415200770198 /* scryeballTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = scryeballTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E44C738D2199415200770198 /* NodeWordFinderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeWordFinderTests.swift; sourceTree = "<group>"; };
+		E44C738F2199415200770198 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E44C73952199432500770198 /* NodeWordFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeWordFinder.swift; sourceTree = "<group>"; };
+		E44C73972199451F00770198 /* NodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeTests.swift; sourceTree = "<group>"; };
 		E48FAB56214F26B000831C66 /* scryeball.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = scryeball.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E48FAB59214F26B000831C66 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E48FAB5B214F26B000831C66 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -33,6 +51,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		E44C73882199415200770198 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E48FAB53214F26AF00831C66 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -49,15 +74,27 @@
 				E48FAB5B214F26B000831C66 /* ViewController.swift */,
 				E48FAB59214F26B000831C66 /* AppDelegate.swift */,
 				E4385499216BFAF600D5C65B /* RegexWordFinder.swift */,
+				E44C73952199432500770198 /* NodeWordFinder.swift */,
 				E438549B216BFBF500D5C65B /* Util.swift */,
 			);
 			path = Source;
+			sourceTree = "<group>";
+		};
+		E44C738C2199415200770198 /* scryeballTests */ = {
+			isa = PBXGroup;
+			children = (
+				E44C738D2199415200770198 /* NodeWordFinderTests.swift */,
+				E44C73972199451F00770198 /* NodeTests.swift */,
+				E44C738F2199415200770198 /* Info.plist */,
+			);
+			path = scryeballTests;
 			sourceTree = "<group>";
 		};
 		E48FAB4D214F26AF00831C66 = {
 			isa = PBXGroup;
 			children = (
 				E48FAB58214F26B000831C66 /* scryeball */,
+				E44C738C2199415200770198 /* scryeballTests */,
 				E48FAB57214F26B000831C66 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,6 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				E48FAB56214F26B000831C66 /* scryeball.app */,
+				E44C738B2199415200770198 /* scryeballTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,6 +133,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		E44C738A2199415200770198 /* scryeballTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E44C73942199415200770198 /* Build configuration list for PBXNativeTarget "scryeballTests" */;
+			buildPhases = (
+				E44C73872199415200770198 /* Sources */,
+				E44C73882199415200770198 /* Frameworks */,
+				E44C73892199415200770198 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E44C73912199415200770198 /* PBXTargetDependency */,
+			);
+			name = scryeballTests;
+			productName = scryeballTests;
+			productReference = E44C738B2199415200770198 /* scryeballTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		E48FAB55214F26AF00831C66 /* scryeball */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E48FAB68214F26B000831C66 /* Build configuration list for PBXNativeTarget "scryeball" */;
@@ -118,10 +174,14 @@
 		E48FAB4E214F26AF00831C66 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0940;
+				LastSwiftUpdateCheck = 1000;
 				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "Johnny Sparks ";
 				TargetAttributes = {
+					E44C738A2199415200770198 = {
+						CreatedOnToolsVersion = 10.0;
+						TestTargetID = E48FAB55214F26AF00831C66;
+					};
 					E48FAB55214F26AF00831C66 = {
 						CreatedOnToolsVersion = 9.4.1;
 					};
@@ -141,11 +201,19 @@
 			projectRoot = "";
 			targets = (
 				E48FAB55214F26AF00831C66 /* scryeball */,
+				E44C738A2199415200770198 /* scryeballTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		E44C73892199415200770198 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E48FAB54214F26AF00831C66 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -161,11 +229,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		E44C73872199415200770198 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E44C738E2199415200770198 /* NodeWordFinderTests.swift in Sources */,
+				E44C73982199451F00770198 /* NodeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E48FAB52214F26AF00831C66 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				E438549A216BFAF600D5C65B /* RegexWordFinder.swift in Sources */,
+				E44C73962199432500770198 /* NodeWordFinder.swift in Sources */,
 				E48FAB5C214F26B000831C66 /* ViewController.swift in Sources */,
 				E48FAB5A214F26B000831C66 /* AppDelegate.swift in Sources */,
 				E438549C216BFBF500D5C65B /* Util.swift in Sources */,
@@ -173,6 +251,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E44C73912199415200770198 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E48FAB55214F26AF00831C66 /* scryeball */;
+			targetProxy = E44C73902199415200770198 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		E48FAB5D214F26B000831C66 /* Main.storyboard */ = {
@@ -194,6 +280,51 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		E44C73922199415200770198 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = R83MTNZF23;
+				INFOPLIST_FILE = scryeballTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = io.solocast.scryeballTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/scryeball.app/scryeball";
+			};
+			name = Debug;
+		};
+		E44C73932199415200770198 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = R83MTNZF23;
+				INFOPLIST_FILE = scryeballTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = io.solocast.scryeballTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/scryeball.app/scryeball";
+			};
+			name = Release;
+		};
 		E48FAB66214F26B000831C66 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -347,6 +478,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		E44C73942199415200770198 /* Build configuration list for PBXNativeTarget "scryeballTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E44C73922199415200770198 /* Debug */,
+				E44C73932199415200770198 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		E48FAB51214F26AF00831C66 /* Build configuration list for PBXProject "scryeball" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

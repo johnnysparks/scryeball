@@ -35,5 +35,83 @@
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "scryeball/Source/NodeWordFinder.swift"
+            timestampString = "563703038.228277"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "136"
+            endingLineNumber = "136"
+            landmarkName = "findWords(for:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "scryeball.NodeWordFinder.findWords(for: Swift.Array&lt;scryeball.CharacterOffset&gt;) -&gt; Swift.Array&lt;Swift.String&gt;"
+                  moduleName = "scryeball"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jparks/dev/scryeball/scryeball/Source/NodeWordFinder.swift"
+                  timestampString = "563703038.233382"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "136"
+                  endingLineNumber = "136"
+                  offsetFromSymbolStart = "3405">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #9 (scryeball.Node&lt;Swift.Character&gt;) -&gt; Swift.Array&lt;Swift.String&gt; in scryeball.NodeWordFinder.findWords(for: Swift.Array&lt;scryeball.CharacterOffset&gt;) -&gt; Swift.Array&lt;Swift.String&gt;"
+                  moduleName = "scryeball"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jparks/dev/scryeball/scryeball/Source/NodeWordFinder.swift"
+                  timestampString = "563703038.235063"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "136"
+                  endingLineNumber = "136"
+                  offsetFromSymbolStart = "28">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Swift.Array&lt;Swift.Character&gt;) -&gt; Swift.String in closure #9 (scryeball.Node&lt;Swift.Character&gt;) -&gt; Swift.Array&lt;Swift.String&gt; in scryeball.NodeWordFinder.findWords(for: Swift.Array&lt;scryeball.CharacterOffset&gt;) -&gt; Swift.Array&lt;Swift.String&gt;"
+                  moduleName = "scryeball"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jparks/dev/scryeball/scryeball/Source/NodeWordFinder.swift"
+                  timestampString = "563703038.236895"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "136"
+                  endingLineNumber = "136"
+                  offsetFromSymbolStart = "20">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #10 (Swift.Array&lt;Swift.String&gt;) -&gt; Swift.Array&lt;Swift.String&gt; in scryeball.NodeWordFinder.findWords(for: Swift.Array&lt;scryeball.CharacterOffset&gt;) -&gt; Swift.Array&lt;Swift.String&gt;"
+                  moduleName = "scryeball"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jparks/dev/scryeball/scryeball/Source/NodeWordFinder.swift"
+                  timestampString = "563703038.2388459"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "136"
+                  endingLineNumber = "136"
+                  offsetFromSymbolStart = "20">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

@@ -114,7 +114,10 @@ class ViewController: UIViewController {
         self.p1HandView.hand = String(board.player1Hand)
         self.p2HandView.hand = String(board.player2Hand)
 
-        run()
+//        run()
+
+        let finder = NodeWordFinder()
+        finder.setup()
     }
 
     func run() {
@@ -653,91 +656,5 @@ extension Board {
         return String(letters.map({ Array($0)[column] }))
     }
 }
-
-
-
-// BALL
-// BALM
-// CALL
-// CALM
-
-class Node<T: Hashable>: CustomStringConvertible {
-    var succeeding: [T:Node<T>] = [:]
-    var preceding: [T:Node<T>] = [:]
-    var value: T
-
-    init(value: T) {
-        self.value = value
-    }
-
-    func suffix(values: [T]) {
-        guard let next = values.first else {
-            return
-        }
-
-        let succeedingValues = Array(values.dropFirst())
-        let succeedingNode = succeeding[next] ?? Node<T>(value: next)
-        succeedingNode.suffix(values: succeedingValues)
-        succeeding[next] = succeedingNode
-    }
-
-    func prefix(values: [T]) {
-        guard let prev = values.last else {
-            return
-        }
-
-        let precedingValues = Array(values.dropLast())
-        let precedingNode = preceding[prev] ?? Node<T>(value: prev)
-        precedingNode.suffix(values: precedingValues)
-        preceding[prev] = precedingNode
-    }
-
-    var description: String {
-        return "VAL: \(value), preceding: \(preceding.count) succeeding: \(succeeding.count)"
-    }
-}
-
-class WordMap {
-    var nodeMaps: [Int: [Character: Node<Character>]] = [:]
-
-    func load(word: String) {
-        let letters = Array(word)
-        for offset in 0..<letters.count {
-            let letter = letters[offset]
-            var nodesForOffset = nodeMaps[offset] ?? [:]
-            let node: Node<Character> = nodesForOffset[letter] ?? Node<Character>(value: letter)
-
-            node.prefix(values: Array(word.dropLast(word.count - offset)))
-            node.suffix(values: Array(word.dropFirst(offset + 1)))
-            print("offset: \(offset), node: \(node)")
-
-            nodesForOffset[letter] = node
-            nodeMaps[offset] = nodesForOffset
-        }
-    }
-}
-
-
-
-
-
-
-// cab
-// idx 0, count: 3
-// letter = c
-// node = Node('c')
-// prefix dropLast( word.count=3, offset=0, result=3 ) prefix = []
-// suffix dropFirst( offset+1=1, result=1 ) suffix = ab
-
-// cab
-// idx 1, count: 3
-// letter = a
-// node = Node('a')
-// prefix dropLast( word.count=3, offset=1, result=2 ) prefix = [c]
-// suffix dropFirst( offset+1=2, result=2 ) suffix = [b]
-
-
-
-
 
 
